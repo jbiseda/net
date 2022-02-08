@@ -3,9 +3,10 @@ use std::net::{UdpSocket, SocketAddr};
 fn main() -> std::io::Result<()> {
     println!("Hello, world!");
 
-    let socket = UdpSocket::bind("127.0.0.1:0")?;
+    //
+    let socket = UdpSocket::bind("10.138.0.64:0")?;
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 2345));
+    let addr = SocketAddr::from(([10, 138, 0, 64], 2345));
 
     let mut buf = [5; 999];
 
