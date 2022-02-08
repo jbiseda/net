@@ -1,14 +1,19 @@
+use std::env;
 use std::net::{UdpSocket, SocketAddr};
 
 fn main() -> std::io::Result<()> {
-    println!("Hello, world!");
 
-    //
-    let socket = UdpSocket::bind("10.138.0.64:0")?;
+    let args: Vec<String> = env::args().collect();
 
-    let addr = SocketAddr::from(([10, 138, 0, 64], 2345));
+    let addr_string = &args[1];
 
-    let mut buf = [5; 999];
+    println!("Sending...");
+
+    let socket = UdpSocket::bind("0.0.0.0:0")?;
+
+    let addr: SocketAddr = addr_string.parse().unwrap();
+
+    let buf = [5; 999];
 
     for i in 0..1000 {
         socket.send_to(&buf, &addr)?;

@@ -1,20 +1,21 @@
+use std::env;
 use std::net::UdpSocket;
 
 
 fn main() -> std::io::Result<()> {
-    println!("Hello, world!");
+    println!("Reading...");
 
-    let socket = UdpSocket::bind("10.138.0.64:2345")?;
+    let args: Vec<String> = env::args().collect();
 
-    let mut pktcnt = 0;
+    let addr_string = &args[1];
 
-    while true {
+    let socket = UdpSocket::bind(addr_string)?;
+
+    for i in 0..1_000 {
         let mut buf = [0; 1500];
-        let (amt, src) = socket.recv_from(&mut buf)?;
-        println!("pkt len={} cnt={}", amt, pktcnt);
-        pktcnt += 1;
+        let (amt, _src) = socket.recv_from(&mut buf)?;
+        println!("pkt len={} cnt={}", amt, i);
     }
-    
     
     Ok(())
 }
