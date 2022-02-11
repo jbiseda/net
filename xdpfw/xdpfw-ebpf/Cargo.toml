@@ -1,0 +1,19 @@
+[package]
+name = "xdpfw-ebpf"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+aya-bpf = { git = "http://github.com/aya-rs/aya", branch = "main" }
+xdpfw-common = { path = "../xdpfw-common" }
+memoffset = "*"
+
+[[bin]]
+name = "xdpfw"
+path = "src/main.rs"
+
+[profile.release]
+panic = "abort"
+
+[workspace]
+members = []
