@@ -1,6 +1,6 @@
 use anyhow::Context;
 use aya::{
-//    maps::perf::AsyncPerfEventArray,
+    //    maps::perf::AsyncPerfEventArray,
     maps::perf::PerfEventArray,
     programs::{Xdp, XdpFlags},
     util::online_cpus,
@@ -31,10 +31,9 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let probe: &mut Xdp = bpf.program_mut("xdpfw").unwrap().try_into()?;
     probe.load()?;
-//    probe.attach(&iface, XdpFlags::default())
+    //    probe.attach(&iface, XdpFlags::default())
     probe.attach(&iface, XdpFlags::SKB_MODE)
         .context("failed to attach the XDP program with default flags - try changing XdpFlags::default() to XdpFlags::SKB_MODE")?;
-
 
     let mut perf_array = PerfEventArray::try_from(bpf.map_mut("EVENTS")?)?;
 
@@ -48,13 +47,13 @@ async fn main() -> Result<(), anyhow::Error> {
 
             loop {
                 //let events = buf.read_events(&mut buffers).await.unwrap();
-		let events = buf.read_events(&mut buffers).unwrap();
+                let events = buf.read_events(&mut buffers).unwrap();
                 for i in 0..events.read {
                     let buf = &mut buffers[i];
                     let ptr = buf.as_ptr() as *const PacketLog;
                     let data = unsafe { ptr.read_unaligned() };
                     let src_addr = net::Ipv4Addr::from(data.ipv4_address);
-//                    println!("LOG: SRC({}), ACTION({}) HASH({}) X({})", src_addr, data.action, data.hash, data.x);
+                    //                    println!("LOG: SRC({}), ACTION({}) HASH({}) X({})", src_addr, data.action, data.hash, data.x);
                     println!(
 		        "LOG: SRC({}), PACKETLN({}) ACTION({}) HASH({}) IPL({}) UDPDP({}) UDPLN({}) UDPCALC({})",
 			src_addr,

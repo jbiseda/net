@@ -1,6 +1,6 @@
 mod build_ebpf;
-mod run;
 mod codegen;
+mod run;
 
 use std::process::exit;
 
@@ -25,7 +25,7 @@ fn main() {
     let ret = match opts.command {
         BuildEbpf(opts) => build_ebpf::build_ebpf(opts),
         Run(opts) => run::run(opts),
-	Codegen => codegen::generate(),
+        Codegen => codegen::generate(),
     };
 
     if let Err(e) = ret {

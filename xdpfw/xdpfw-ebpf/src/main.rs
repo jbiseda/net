@@ -4,8 +4,8 @@
 use aya_bpf::{
     bindings::xdp_action,
     macros::{map, xdp},
-    programs::XdpContext,
     maps::{HashMap, PerfEventArray},
+    programs::XdpContext,
 };
 
 mod bindings;
@@ -16,27 +16,19 @@ use bindings::{ethhdr, iphdr, udphdr};
 use core::hash::Hasher;
 //use ahash::AHasher;
 
-
-
-
 // if_ether.h
 const ETH_P_IP: u16 = 0x0800;
 
 // eth.h
 const ETH_HDR_LEN: usize = 14;
 
-
-
 const TCP_PROTO: u8 = 6;
 const UDP_PROTO: u8 = 17;
-
-
 
 use core::mem;
 use memoffset::offset_of;
 
 use xdpfw_common::PacketLog;
-
 
 /*
 #[map(name = "BLOCKLIST")]
@@ -47,9 +39,10 @@ static mut BLOCKLIST: HashMap<u32, u32> = HashMap::<u32, u32>::with_max_entries(
 static mut DUPTABLE: HashMap<[u8; 32], u8> = HashMap::<[u8; 32], u8>::with_max_entries(1024, 0);
 
 #[map(name = "EVENTS")]
-static mut EVENTS: PerfEventArray<PacketLog> = PerfEventArray::<PacketLog>::with_max_entries(1024, 0);
+static mut EVENTS: PerfEventArray<PacketLog> =
+    PerfEventArray::<PacketLog>::with_max_entries(1024, 0);
 
-#[xdp(name="xdpfw")]
+#[xdp(name = "xdpfw")]
 pub fn xdpfw(ctx: XdpContext) -> u32 {
     match unsafe { try_xdpfw(ctx) } {
         Ok(ret) => ret,
@@ -70,30 +63,26 @@ unsafe fn ptr_at<T>(ctx: &XdpContext, offset: usize) -> Result<*const T, ()> {
     Ok((start + offset) as *const T)
 }
 
-
 unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
-
     let packet_len = ctx.data_end() - ctx.data();
 
     if packet_len < 100 {
         return Ok(xdp_action::XDP_PASS);
     }
 
-
     let mut log_entry = PacketLog {
-    	ipv4_address: 0,
-	action: xdp_action::XDP_PASS,
-	hash: 0,
-	ip_ihl: 0,
-	udp_dest_port: 0,
-	udp_payload_len: 0,
-	packet_len: 0,
-	udp_payload_packet_calc: 0,
-	scratch: 0,
-	buf: [0; 64],
-	pkt_cnt: 0,
+        ipv4_address: 0,
+        action: xdp_action::XDP_PASS,
+        hash: 0,
+        ip_ihl: 0,
+        udp_dest_port: 0,
+        udp_payload_len: 0,
+        packet_len: 0,
+        udp_payload_packet_calc: 0,
+        scratch: 0,
+        buf: [0; 64],
+        pkt_cnt: 0,
     };
-
 
     let h_proto = u16::from_be(unsafe { *ptr_at(&ctx, offset_of!(ethhdr, h_proto))? });
     if h_proto != ETH_P_IP {
@@ -102,7 +91,8 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     }
 
     // ip proto
-    let ip_proto = u8::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + offset_of!(iphdr, protocol))? });
+    let ip_proto =
+        u8::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + offset_of!(iphdr, protocol))? });
     if ip_proto != UDP_PROTO {
         // we only care about UDP
         return Ok(xdp_action::XDP_PASS);
@@ -122,15 +112,14 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     let ip_ihl = first_byte & 0b00001111;
     let ip_header_len: usize = (ip_ihl as usize) * 4;
 
-    let udp_dest_port = u16::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + ip_header_len + offset_of!(udphdr, dest))? });
+    let udp_dest_port = u16::from_be(unsafe {
+        *ptr_at(&ctx, ETH_HDR_LEN + ip_header_len + offset_of!(udphdr, dest))?
+    });
 
     if udp_dest_port != 2222 {
-        // we only care about one port
-        return Ok(xdp_action::XDP_PASS);	
+        // only inspect specific port
+        return Ok(xdp_action::XDP_PASS);
     }
-
-
-
 
     let ptr: *const u8 = unsafe { ptr_at(&ctx, ETH_HDR_LEN + 20 + 8)? };
     let slice = unsafe { core::slice::from_raw_parts::<u8>(ptr, 32) };
@@ -142,51 +131,45 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
 
     match DUPTABLE.get(&key) {
         Some(val) => {
-
-	    log_entry.pkt_cnt = 555;
-	    log_entry.scratch = *val as u64;
-	    log_entry.ipv4_address = source;
-	    log_entry.action = xdp_action::XDP_DROP;
-//	    log_entry.hash = hash50;
-	    log_entry.ip_ihl = ip_ihl;
-	    log_entry.udp_dest_port = udp_dest_port;
-//	    log_entry.udp_payload_len = udp_payload_len;
-	    log_entry.packet_len = packet_len;
-//	    log_entry.udp_payload_packet_calc = udp_payload_packet_calc;
-
-	    unsafe {
-		EVENTS.output(&ctx, &log_entry, 0);
-	    }
-	    
-	    return Ok(xdp_action::XDP_DROP)
-	},
-	None => (),
+            log_entry.pkt_cnt = 555;
+            log_entry.scratch = *val as u64;
+            log_entry.ipv4_address = source;
+            log_entry.action = xdp_action::XDP_DROP;
+            //	    log_entry.hash = hash50;
+            log_entry.ip_ihl = ip_ihl;
+            log_entry.udp_dest_port = udp_dest_port;
+            //	    log_entry.udp_payload_len = udp_payload_len;
+            log_entry.packet_len = packet_len;
+            //	    log_entry.udp_payload_packet_calc = udp_payload_packet_calc;
+            unsafe {
+                EVENTS.output(&ctx, &log_entry, 0);
+            }
+            return Ok(xdp_action::XDP_DROP);
+        }
+        None => (),
     }
 
-
     return Ok(xdp_action::XDP_PASS);
-    
-//    DUPTABLE.insert(&key, &1, 0);
 
+    //    DUPTABLE.insert(&key, &1, 0);
 
     let test_byte = u8::from_be(unsafe { *ptr_at(&ctx, 88)? });
 
     let mut hasher = FnvHasher::default();
     for i in 60..80 {
-    	let byte = u8::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + i)? });
-	let v = [byte; 1];
-	hasher.write(&v[..]);
+        let byte = u8::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + i)? });
+        let v = [byte; 1];
+        hasher.write(&v[..]);
     }
     let hash50 = hasher.finish();
 
     let ptr: *const u8 = unsafe { ptr_at(&ctx, ETH_HDR_LEN + 20 + 8)? };
     let slice = unsafe { core::slice::from_raw_parts::<u8>(ptr, 32) };
 
-//    log_entry.buf[..].clone_from_slice(&slice);
+    //    log_entry.buf[..].clone_from_slice(&slice);
 
     //let xoff = ETH_P_IP + 20 + 8;
     //memcpy();
-
 
     let h_proto = u16::from_be(unsafe { *ptr_at(&ctx, offset_of!(ethhdr, h_proto))? });
     if h_proto != ETH_P_IP {
@@ -194,7 +177,8 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     }
 
     // ip proto
-    let ip_proto = u8::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + offset_of!(iphdr, protocol))? });
+    let ip_proto =
+        u8::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + offset_of!(iphdr, protocol))? });
     if ip_proto != UDP_PROTO {
         // we only care about UDP
         return Ok(xdp_action::XDP_PASS);
@@ -202,15 +186,15 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
 
     let source = u32::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + offset_of!(iphdr, saddr))? });
 
-/*
-    let mut hasher = FnvHasher::default();
-    for i in 0..22 {
-    	let byte = u8::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + i)? });
-	let v = [byte; 1];
-	hasher.write(&v[..]);
-    }
-    let hash = hasher.finish();
-*/
+    /*
+        let mut hasher = FnvHasher::default();
+        for i in 0..22 {
+            let byte = u8::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + i)? });
+        let v = [byte; 1];
+        hasher.write(&v[..]);
+        }
+        let hash = hasher.finish();
+    */
 
     let first_byte: u8 = *ptr_at(&ctx, ETH_HDR_LEN)?;
     /*
@@ -224,147 +208,145 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     let ip_ihl = first_byte & 0b00001111;
     let ip_header_len: usize = (ip_ihl as usize) * 4;
 
-    let udp_dest_port = u16::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + ip_header_len + offset_of!(udphdr, dest))? });
+    let udp_dest_port = u16::from_be(unsafe {
+        *ptr_at(&ctx, ETH_HDR_LEN + ip_header_len + offset_of!(udphdr, dest))?
+    });
 
-//    if udp_dest_port != 8004 {
-//        return Ok(xdp_action::XDP_PASS);
-//    }
+    //    if udp_dest_port != 8004 {
+    //        return Ok(xdp_action::XDP_PASS);
+    //    }
 
     // len of udp header and data
-    let udp_len: usize = u16::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + ip_header_len + offset_of!(udphdr, len))? }) as usize;
+    let udp_len: usize = u16::from_be(unsafe {
+        *ptr_at(&ctx, ETH_HDR_LEN + ip_header_len + offset_of!(udphdr, len))?
+    }) as usize;
     let udp_payload_len: usize = (udp_len as usize).saturating_sub(8);
 
     if udp_payload_len < 64 {
-       return Ok(xdp_action::XDP_PASS); // ABORT?
+        return Ok(xdp_action::XDP_PASS); // ABORT?
     }
 
-/*
-    let payload_off = ETH_HDR_LEN + ip_header_len + 8;
-    if ctx.data().saturating_add(payload_off) >= ctx.data_end() {
-       return Ok(xdp_action::XDP_ABORTED);
-    }
-    let verif_end_off = payload_off.saturating_add(64);
-    if ctx.data().saturating_add(verif_end_off) >= ctx.data_end() {
-       return Ok(xdp_action::XDP_ABORTED);    
-    }
-*/
+    /*
+        let payload_off = ETH_HDR_LEN + ip_header_len + 8;
+        if ctx.data().saturating_add(payload_off) >= ctx.data_end() {
+           return Ok(xdp_action::XDP_ABORTED);
+        }
+        let verif_end_off = payload_off.saturating_add(64);
+        if ctx.data().saturating_add(verif_end_off) >= ctx.data_end() {
+           return Ok(xdp_action::XDP_ABORTED);
+        }
+    */
 
-/*
-    let mut hasher = FnvHasher::default();
-    for i in 0..2 {
-    	let byte = u8::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + ip_header_len + 8 + i)? });
-	let v = [byte; 1];
-	hasher.write(&v[..]);
-    }
-    let hash = hasher.finish();
-*/
+    /*
+        let mut hasher = FnvHasher::default();
+        for i in 0..2 {
+            let byte = u8::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + ip_header_len + 8 + i)? });
+        let v = [byte; 1];
+        hasher.write(&v[..]);
+        }
+        let hash = hasher.finish();
+    */
 
-//    let first_payload_int = u32::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + ip_header_len + udp_len)? });
-
+    //    let first_payload_int = u32::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + ip_header_len + udp_len)? });
 
     unsafe {
         let mut byte_ptr = ctx.data();
 
-	byte_ptr += ETH_HDR_LEN;
-	if byte_ptr > ctx.data_end() {
-	   return Err(());
-	}
+        byte_ptr += ETH_HDR_LEN;
+        if byte_ptr > ctx.data_end() {
+            return Err(());
+        }
 
-	byte_ptr += ip_header_len;
-	if byte_ptr > ctx.data_end() {
-	    return Err(());
-	}
+        byte_ptr += ip_header_len;
+        if byte_ptr > ctx.data_end() {
+            return Err(());
+        }
 
-//	byte_ptr += udp_payload_len - 1;
-//	if byte_ptr > ctx.data_end() || byte_ptr < ctx.data() {
-//	    return Err(());
-//	}
+        //	byte_ptr += udp_payload_len - 1;
+        //	if byte_ptr > ctx.data_end() || byte_ptr < ctx.data() {
+        //	    return Err(());
+        //	}
     };
 
-//    let last_byte = u8::from_be( unsafe { *ptr_at(&ctx, ETH_HDR_LEN + ip_header_len + 8 + udp_payload_len - 1)? } );
+    //    let last_byte = u8::from_be( unsafe { *ptr_at(&ctx, ETH_HDR_LEN + ip_header_len + 8 + udp_payload_len - 1)? } );
 
-
-//    let ip = unsafe { ptr_at::<iphdr>(&ctx, ETH_HDR_LEN)? };
+    //    let ip = unsafe { ptr_at::<iphdr>(&ctx, ETH_HDR_LEN)? };
     // ip header length in 32-bit words
-//    let ihl = (*ip).ihl();
-//    let proto = (*ip).protocol();
-//    let source = (*ip).saddr().unwrap();
+    //    let ihl = (*ip).ihl();
+    //    let proto = (*ip).protocol();
+    //    let source = (*ip).saddr().unwrap();
 
-//    let udp = unsafe { ptr_at::<udphdr>(&ctx, ETH_HDR_LEN + ((ihl as usize) * 4))? };
-//    let dport = (*udp).dest();
-//    let payload_len = (*udp).len();
+    //    let udp = unsafe { ptr_at::<udphdr>(&ctx, ETH_HDR_LEN + ((ihl as usize) * 4))? };
+    //    let dport = (*udp).dest();
+    //    let payload_len = (*udp).len();
 
-/*
-    pub _bitfield_1: __BindgenBitfieldUnit<[u8; 1usize]>,
-    
-    pub fn ihl(&self) -> __u8 {
-        unsafe { ::core::mem::transmute(self._bitfield_1.get(0usize, 4u8) as u8) }
-    }
-*/
+    /*
+        pub _bitfield_1: __BindgenBitfieldUnit<[u8; 1usize]>,
 
+        pub fn ihl(&self) -> __u8 {
+            unsafe { ::core::mem::transmute(self._bitfield_1.get(0usize, 4u8) as u8) }
+        }
+    */
 
+    //    *ptr_at::<__BindgenBitfieldUnit<[u8; 1usize]>>(&ctx, ETH_HDR_LEN + offset_of!(iphdr, _bitfield_1))?;
 
-//    *ptr_at::<__BindgenBitfieldUnit<[u8; 1usize]>>(&ctx, ETH_HDR_LEN + offset_of!(iphdr, _bitfield_1))?;
+    //    let _ihl = u8::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + offset_of!(iphdr, ihl))? });
+    let _tot_len =
+        u16::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + offset_of!(iphdr, tot_len))? });
 
-//    let _ihl = u8::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + offset_of!(iphdr, ihl))? });
-    let _tot_len = u16::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + offset_of!(iphdr, tot_len))? });
+    //   let udp_ptr: *const u8 = unsafe { ptr_at::<u8>(&ctx, ETH_HDR_LEN + ip_header_len)? };
+    //   let data_end_ptr: *const u8 = ctx.data_end() as *const u8;
+    //   let raw_payload_len: usize = data_end_ptr - udp_ptr;
 
-//   let udp_ptr: *const u8 = unsafe { ptr_at::<u8>(&ctx, ETH_HDR_LEN + ip_header_len)? };
-//   let data_end_ptr: *const u8 = ctx.data_end() as *const u8;
-//   let raw_payload_len: usize = data_end_ptr - udp_ptr;
+    let packet_len = ctx.data_end() - ctx.data();
+    let eth_and_ip = ETH_HDR_LEN + ip_header_len;
+    let udp_payload_packet_calc = packet_len - eth_and_ip - 8;
 
-     let packet_len = ctx.data_end() - ctx.data();
-     let eth_and_ip = ETH_HDR_LEN + ip_header_len;
-     let udp_payload_packet_calc = packet_len - eth_and_ip - 8;
-
-
-
-/*
-    let mut hasher = AHasher::new_with_keys(1234, 5678);
-    hasher.write_u32(source);
-    let _hash: u64 = hasher.finish();
-*/
+    /*
+        let mut hasher = AHasher::new_with_keys(1234, 5678);
+        hasher.write_u32(source);
+        let _hash: u64 = hasher.finish();
+    */
 
     let mut hasher = FnvHasher::default();
-//    hasher.write(&source.to_be_bytes());
+    //    hasher.write(&source.to_be_bytes());
     let ptr: *const u8 = unsafe { ptr_at::<u8>(&ctx, ETH_HDR_LEN + ip_header_len + 8)? };
 
-//    let slice = unsafe { core::slice::from_raw_parts(ptr, udp_payload_len) };
+    //    let slice = unsafe { core::slice::from_raw_parts(ptr, udp_payload_len) };
     let slice = unsafe { core::slice::from_raw_parts::<u8>(ptr, 1) };
 
-//    hasher.write(&slice);
+    //    hasher.write(&slice);
 
-/*
+    /*
     if (byte as usize).saturating_add(udp_payload_packet_calc) > ctx.data_end() {
         return Ok(xdp_action::XDP_ABORTED);
     }
     */
 
     let byte: *const u8 = unsafe { ptr_at(&ctx, ETH_HDR_LEN + ip_header_len + 8)? };
-//    let slice = unsafe { core::slice::from_raw_parts::<u8>(byte, udp_payload_packet_calc) };
+    //    let slice = unsafe { core::slice::from_raw_parts::<u8>(byte, udp_payload_packet_calc) };
     let slice = unsafe { core::slice::from_raw_parts::<u8>(byte, 1) };
-//    hasher.write(&slice);
+    //    hasher.write(&slice);
 
     let byte: *const u8 = unsafe { ptr_at(&ctx, ETH_HDR_LEN + ip_header_len + 8 + 1)? };
     let slice = unsafe { core::slice::from_raw_parts::<u8>(byte, 1) };
-//    hasher.write(&slice);
+    //    hasher.write(&slice);
 
-//    let hash: u64 = hasher.finish();
+    //    let hash: u64 = hasher.finish();
 
-
-/*
-    let mut log_entry = PacketLog {
-        ipv4_address: source,
-        action: xdp_action::XDP_PASS,
-	hash: hash50,
-//	x: ip_version as u32,
-	ip_ihl: ip_ihl,
-	udp_dest_port: udp_dest_port,
-	udp_payload_len: udp_payload_len,
-	packet_len: packet_len,
-	udp_payload_packet_calc: udp_payload_packet_calc,
-    };
-*/
+    /*
+        let mut log_entry = PacketLog {
+            ipv4_address: source,
+            action: xdp_action::XDP_PASS,
+        hash: hash50,
+    //	x: ip_version as u32,
+        ip_ihl: ip_ihl,
+        udp_dest_port: udp_dest_port,
+        udp_payload_len: udp_payload_len,
+        packet_len: packet_len,
+        udp_payload_packet_calc: udp_payload_packet_calc,
+        };
+    */
 
     // u64
     log_entry.scratch = 123;
@@ -381,7 +363,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     unsafe {
         EVENTS.output(&ctx, &log_entry, 0);
     }
-    
+
     Ok(xdp_action::XDP_PASS)
 }
 
@@ -389,11 +371,6 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
 fn panic(_info: &core::panic::PanicInfo) -> ! {
     unsafe { core::hint::unreachable_unchecked() }
 }
-
-
-
-
-
 
 ///////////////////////////////////////////////////////////////
 // https://github.com/servo/rust-fnv/blob/master/lib.rs
@@ -403,7 +380,6 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
 pub struct FnvHasher(u64);
 
 impl Default for FnvHasher {
-
     #[inline]
     fn default() -> FnvHasher {
         FnvHasher(0xcbf29ce484222325)
@@ -439,7 +415,3 @@ impl Hasher for FnvHasher {
 }
 
 ///////////////////////////////////////////////////////////////
-
-
-
-
