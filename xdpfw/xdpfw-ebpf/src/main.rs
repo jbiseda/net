@@ -150,11 +150,14 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     */
 
     log_entry.scratch = 55;
-
+    
     let offset: usize = ETH_HDR_LEN + ip_header_len + 8;
-    let ptr: *const u8 = (ctx.data() + offset) as *const u8;
-    log_entry.scratch = (*ptr) as u64;
-
+    if ctx.data() + offset + 1 > ctx.data_end() {
+        log_entry.scratch = 77;
+    } else {
+        let ptr: *const u8 = (ctx.data() + offset) as *const u8;
+        log_entry.scratch = (*ptr) as u64;
+    }
 
     /*
     if ctx.data() + ETH_HDR_LEN + ip_header_len + 8 + 32 <= ctx.data_end() {
