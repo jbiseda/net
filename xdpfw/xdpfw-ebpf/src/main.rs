@@ -154,8 +154,17 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     let offset: usize = ETH_HDR_LEN + ip_header_len + 8;
 
 //    let udp_byte: u8 = u8::from_be(unsafe { *ptr_at::<u8>(&ctx, offset)? }) as u8;
+
+    /*
     let udp_byte: u8 = u8::from_be(unsafe { *ptr_at::<u8>(&ctx, 42)? }) as u8;
     log_entry.buf[0] = udp_byte;
+    */
+
+    
+    let udp_ptr: *const u8 = unsafe { ptr_at::<u8>(&ctx, 42)? };
+    let slice = unsafe { core::slice::from_raw_parts::<u8>(udp_ptr, 32) };
+    log_entry.buf[..].clone_from_slice(&slice);
+
 
 //    log_entry.scratch = udp_byte as u64;
     /*
