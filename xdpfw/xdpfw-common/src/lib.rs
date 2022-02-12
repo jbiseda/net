@@ -8,6 +8,7 @@ pub struct PacketLog {
     pub action: u32,
     pub hash: u64,
     pub ip_ihl: u8,
+    pub tot_len: u16,
     pub udp_dest_port: u16,
     pub udp_payload_len: usize,
     pub packet_len: usize,
