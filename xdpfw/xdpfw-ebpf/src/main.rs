@@ -71,9 +71,9 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     }
 
     let mut log_entry = PacketLog {
-        ctx_data: ctx.data(),
-        ctx_data_end: ctx.data_end(),
-        ctx_diff: ctx.data_end() - ctx.data(),
+        ctx_data: ctx.data() as u64,
+        ctx_data_end: ctx.data_end() as u64,
+        ctx_diff: (ctx.data_end() - ctx.data()) as u64,
         ipv4_address: 0,
         action: xdp_action::XDP_PASS,
         hash: 0,
