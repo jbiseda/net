@@ -149,7 +149,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     log_entry.buf[..].clone_from_slice(&slice);
     */
 
-    log_entry.scratch = ctx.data() + ETH_HDR_LEN + ip_header_len + 8 + 32;
+    log_entry.scratch = (ctx.data() + ETH_HDR_LEN + ip_header_len + 8 + 32) as u64;
     if ctx.data() + ETH_HDR_LEN + ip_header_len + 8 + 32 <= ctx.data_end() {
         log_entry.scratch = 66;
         let ptr: *const u8 = (ctx.data() + ETH_HDR_LEN + ip_header_len + 8) as *const u8;
