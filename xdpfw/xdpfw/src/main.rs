@@ -71,6 +71,7 @@ async fn main() -> Result<(), anyhow::Error> {
                         data.pkt_cnt,
                         data.buf[0],
                     );
+                    println!("buf {:?}", data.buf);
                 }
             }
         });
