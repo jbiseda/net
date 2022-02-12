@@ -134,6 +134,11 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     let mut key = [0; 32];
     key[..].copy_from_slice(&log_entry.buf[0..32]);
 
+    log_entry.scratch = 4;
+    unsafe {
+        EVENTS.output(&ctx, &log_entry, 0);
+    }
+
     match DUPTABLE.get(&key) {
         Some(val) => {
             log_entry.pkt_cnt = 555;
@@ -150,11 +155,11 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
                 EVENTS.output(&ctx, &log_entry, 0);
             }
             return Ok(xdp_action::XDP_DROP);
-        }
+        },
         None => (),
     }
 
-    log_entry.scratch = 4;
+    log_entry.scratch = 5;
     unsafe {
         EVENTS.output(&ctx, &log_entry, 0);
     }
