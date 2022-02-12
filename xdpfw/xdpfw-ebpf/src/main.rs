@@ -160,10 +160,10 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     log_entry.buf[0] = udp_byte;
     */
 
-    
+
     let udp_ptr: *const u8 = unsafe { ptr_at::<u8>(&ctx, 42)? };
     let slice = unsafe { core::slice::from_raw_parts::<u8>(udp_ptr, 32) };
-    log_entry.buf[..].clone_from_slice(&slice);
+    log_entry.buf[..32].clone_from_slice(&slice);
 
 
 //    log_entry.scratch = udp_byte as u64;
