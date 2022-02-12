@@ -365,7 +365,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
 
     log_entry.ipv4_address = source;
     log_entry.action = xdp_action::XDP_PASS;
-    log_entry.hash = hash50;
+    log_entry.hash = 765; //hash50;
     log_entry.ip_ihl = ip_ihl;
     log_entry.udp_dest_port = udp_dest_port;
     log_entry.udp_payload_len = udp_payload_len;
