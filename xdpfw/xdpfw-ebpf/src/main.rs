@@ -99,6 +99,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     }
 
     let source = u32::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + offset_of!(iphdr, saddr))? });
+    log_entry.ipv4_address = source;
 
     let first_byte: u8 = *ptr_at(&ctx, ETH_HDR_LEN)?;
     /*
@@ -111,26 +112,31 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     */
     let ip_ihl = first_byte & 0b00001111;
     let ip_header_len: usize = (ip_ihl as usize) * 4;
+    log_entry.ip_ihl = ip_ihl;
 
     let udp_dest_port = u16::from_be(unsafe {
         *ptr_at(&ctx, ETH_HDR_LEN + ip_header_len + offset_of!(udphdr, dest))?
     });
+    log_entry.udp_dest_port = udp_dest_port;
 
     if udp_dest_port != 2222 {
         // only inspect specific port
         return Ok(xdp_action::XDP_PASS);
     }
 
+    // len of udp header and data
+    let udp_len: usize = u16::from_be(unsafe {
+        *ptr_at(&ctx, ETH_HDR_LEN + ip_header_len + offset_of!(udphdr, len))?
+    }) as usize;
+    let udp_payload_len: usize = (udp_len as usize).saturating_sub(8);
+    log_entry.udp_payload_len = udp_payload_len;
+
     log_entry.scratch = 3;
     unsafe {
         EVENTS.output(&ctx, &log_entry, 0);
     }
 
-    log_entry.scratch = 4;
-    unsafe {
-        EVENTS.output(&ctx, &log_entry, 0);
-    }
-
+    /*
     let ptr: *const u8 = unsafe { ptr_at(&ctx, ETH_HDR_LEN + 20 + 8)? };
     let slice = unsafe { core::slice::from_raw_parts::<u8>(ptr, 32) };
 
@@ -170,11 +176,13 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     }
 
     return Ok(xdp_action::XDP_PASS);
+    */
 
     //    DUPTABLE.insert(&key, &1, 0);
 
     let test_byte = u8::from_be(unsafe { *ptr_at(&ctx, 88)? });
 
+    /*
     let mut hasher = FnvHasher::default();
     for i in 60..80 {
         let byte = u8::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + i)? });
@@ -182,29 +190,17 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
         hasher.write(&v[..]);
     }
     let hash50 = hasher.finish();
+    */
 
+    /*
     let ptr: *const u8 = unsafe { ptr_at(&ctx, ETH_HDR_LEN + 20 + 8)? };
     let slice = unsafe { core::slice::from_raw_parts::<u8>(ptr, 32) };
+    */
 
     //    log_entry.buf[..].clone_from_slice(&slice);
 
     //let xoff = ETH_P_IP + 20 + 8;
     //memcpy();
-
-    let h_proto = u16::from_be(unsafe { *ptr_at(&ctx, offset_of!(ethhdr, h_proto))? });
-    if h_proto != ETH_P_IP {
-        return Ok(xdp_action::XDP_PASS);
-    }
-
-    // ip proto
-    let ip_proto =
-        u8::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + offset_of!(iphdr, protocol))? });
-    if ip_proto != UDP_PROTO {
-        // we only care about UDP
-        return Ok(xdp_action::XDP_PASS);
-    }
-
-    let source = u32::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + offset_of!(iphdr, saddr))? });
 
     /*
         let mut hasher = FnvHasher::default();
@@ -236,11 +232,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     //        return Ok(xdp_action::XDP_PASS);
     //    }
 
-    // len of udp header and data
-    let udp_len: usize = u16::from_be(unsafe {
-        *ptr_at(&ctx, ETH_HDR_LEN + ip_header_len + offset_of!(udphdr, len))?
-    }) as usize;
-    let udp_payload_len: usize = (udp_len as usize).saturating_sub(8);
+
 
     if udp_payload_len < 64 {
         return Ok(xdp_action::XDP_PASS); // ABORT?
