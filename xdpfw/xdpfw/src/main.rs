@@ -54,12 +54,13 @@ async fn main() -> Result<(), anyhow::Error> {
                     let data = unsafe { ptr.read_unaligned() };
                     let src_addr = net::Ipv4Addr::from(data.ipv4_address);
                     println!(
-                        "LOG: SRC({}), PACKETLN({}) ACTION({}) HASH({}) IPL({}) UDPDP({}) UDPLN({}) UDPCALC({}) scratch({}) pkt_cnt({}) buf[0]({})",
+                        "LOG: SRC({}), PACKETLN({}) ACTION({}) HASH({}) IPL({}) ip_tot_len({}) UDPDP({}) UDPLN({}) UDPCALC({}) scratch({}) pkt_cnt({}) buf[0]({})",
                         src_addr,
                         data.packet_len,
                         data.action,
                         data.hash,
                         data.ip_ihl,
+                        data.tot_len,
                         data.udp_dest_port,
                         data.udp_payload_len,
                         data.udp_payload_packet_calc,

@@ -98,9 +98,6 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
         return Ok(xdp_action::XDP_PASS);
     }
 
-    let source = u32::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + offset_of!(iphdr, saddr))? });
-    log_entry.ipv4_address = source;
-
     let first_byte: u8 = *ptr_at(&ctx, ETH_HDR_LEN)?;
     /*
     // TODO do we want to sanity check this?
@@ -113,6 +110,13 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     let ip_ihl = first_byte & 0b00001111;
     let ip_header_len: usize = (ip_ihl as usize) * 4;
     log_entry.ip_ihl = ip_ihl;
+
+    let tot_len =
+        u16::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + offset_of!(iphdr, tot_len))? });
+    log_entry.tot_len = tot_len;
+
+    let source = u32::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + offset_of!(iphdr, saddr))? });
+    log_entry.ipv4_address = source;
 
     let udp_dest_port = u16::from_be(unsafe {
         *ptr_at(&ctx, ETH_HDR_LEN + ip_header_len + offset_of!(udphdr, dest))?
@@ -136,20 +140,21 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
         EVENTS.output(&ctx, &log_entry, 0);
     }
 
-    /*
-    let ptr: *const u8 = unsafe { ptr_at(&ctx, ETH_HDR_LEN + 20 + 8)? };
+    // udp payload ptr
+    let ptr: *const u8 = unsafe { ptr_at(&ctx, ETH_HDR_LEN + ip_header_len + 8)? };
     let slice = unsafe { core::slice::from_raw_parts::<u8>(ptr, 32) };
-
     log_entry.buf[..].clone_from_slice(&slice);
 
-    let mut key = [0; 32];
-    key[..].copy_from_slice(&log_entry.buf[0..32]);
+//    let mut key = [0; 32];
+//    key[..].copy_from_slice(&log_entry.buf[0..32]);
 
-    log_entry.scratch = 5;
+    log_entry.scratch = 4;
     unsafe {
         EVENTS.output(&ctx, &log_entry, 0);
     }
 
+
+    /*
     match DUPTABLE.get(&key) {
         Some(val) => {
             log_entry.pkt_cnt = 555;
@@ -169,15 +174,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
         },
         None => (),
     }
-
-    log_entry.scratch = 6;
-    unsafe {
-        EVENTS.output(&ctx, &log_entry, 0);
-    }
-
-    return Ok(xdp_action::XDP_PASS);
     */
-
     //    DUPTABLE.insert(&key, &1, 0);
 
     let test_byte = u8::from_be(unsafe { *ptr_at(&ctx, 88)? });
@@ -211,27 +208,6 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
         }
         let hash = hasher.finish();
     */
-
-    let first_byte: u8 = *ptr_at(&ctx, ETH_HDR_LEN)?;
-    /*
-    // TODO do we want to sanity check this?
-    let ip_version = (first_byte & 0b11110000) >> 4;
-    if ip_version != 4 {
-       // IPv4 version must always be 4
-        return Ok(xdp_action::XDP_ABORT);
-    }
-    */
-    let ip_ihl = first_byte & 0b00001111;
-    let ip_header_len: usize = (ip_ihl as usize) * 4;
-
-    let udp_dest_port = u16::from_be(unsafe {
-        *ptr_at(&ctx, ETH_HDR_LEN + ip_header_len + offset_of!(udphdr, dest))?
-    });
-
-    //    if udp_dest_port != 8004 {
-    //        return Ok(xdp_action::XDP_PASS);
-    //    }
-
 
 
     if udp_payload_len < 64 {
@@ -303,8 +279,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     //    *ptr_at::<__BindgenBitfieldUnit<[u8; 1usize]>>(&ctx, ETH_HDR_LEN + offset_of!(iphdr, _bitfield_1))?;
 
     //    let _ihl = u8::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + offset_of!(iphdr, ihl))? });
-    let _tot_len =
-        u16::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + offset_of!(iphdr, tot_len))? });
+
 
     //   let udp_ptr: *const u8 = unsafe { ptr_at::<u8>(&ctx, ETH_HDR_LEN + ip_header_len)? };
     //   let data_end_ptr: *const u8 = ctx.data_end() as *const u8;
@@ -346,23 +321,8 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
 
     //    let hash: u64 = hasher.finish();
 
-    /*
-        let mut log_entry = PacketLog {
-            ipv4_address: source,
-            action: xdp_action::XDP_PASS,
-        hash: hash50,
-    //	x: ip_version as u32,
-        ip_ihl: ip_ihl,
-        udp_dest_port: udp_dest_port,
-        udp_payload_len: udp_payload_len,
-        packet_len: packet_len,
-        udp_payload_packet_calc: udp_payload_packet_calc,
-        };
-    */
 
-    // u64
     log_entry.scratch = 123;
-
     log_entry.ipv4_address = source;
     log_entry.action = xdp_action::XDP_PASS;
     log_entry.hash = 765; //hash50;
