@@ -75,6 +75,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
         action: xdp_action::XDP_PASS,
         hash: 0,
         ip_ihl: 0,
+        tot_len: 0,
         udp_dest_port: 0,
         udp_payload_len: 0,
         packet_len: 0,
