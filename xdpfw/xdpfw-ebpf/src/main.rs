@@ -144,6 +144,9 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
         EVENTS.output(&ctx, &log_entry, 0);
     }
 
+    let slice = unsafe { core::slice::from_raw_parts::<u8>(ptr_at::<u8>(&ctx, ETH_HDR_LEN + ip_header_len + 8)?, 32) };
+    log_entry.buf[..].clone_from_slice(&slice);
+
     // udp payload ptr
     /*
     let ptr: *const u8 = unsafe { ptr_at(&ctx, ETH_HDR_LEN + ip_header_len + 8)? };
