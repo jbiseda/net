@@ -11,10 +11,12 @@ fn main() -> std::io::Result<()> {
 
     let socket = UdpSocket::bind(addr_string)?;
 
-    for i in 0..1_000 {
+    let mut pkt_cnt = 0;
+    loop {
         let mut buf = [0; 1500];
         let (amt, _src) = socket.recv_from(&mut buf)?;
-        println!("pkt len={} cnt={}", amt, i);
+        pkt_cnt += 1;
+        println!("pkt len={} cnt={} buf[0]={}", amt, pkt_cnt, buf[0]);
     }
     
     Ok(())

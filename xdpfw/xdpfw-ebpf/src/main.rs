@@ -149,10 +149,16 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     log_entry.buf[..].clone_from_slice(&slice);
     */
 
+    log_entry.scratch = 55;
     if ctx.data() + ETH_HDR_LEN + ip_header_len + 8 + 32 <= ctx.data_end() {
+        log_entry.scratch = 66;
         let ptr: *const u8 = (ctx.data() + ETH_HDR_LEN + ip_header_len + 8) as *const u8;
         let slice = unsafe { core::slice::from_raw_parts::<u8>(ptr, 32) };
         log_entry.buf[..].clone_from_slice(&slice);
+    }
+
+    unsafe {
+        EVENTS.output(&ctx, &log_entry, 0);
     }
 
 
@@ -166,10 +172,6 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
 //    let mut key = [0; 32];
 //    key[..].copy_from_slice(&log_entry.buf[0..32]);
 
-    log_entry.scratch = 4;
-    unsafe {
-        EVENTS.output(&ctx, &log_entry, 0);
-    }
 
 
     /*
