@@ -152,7 +152,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     if ctx.data() + ETH_HDR_LEN + ip_header_len + 8 + 32 <= ctx.data_end() {
         let ptr: *const u8 = (ctx.data() + ETH_HDR_LEN + ip_header_len + 8) as *const u8;
         let slice = unsafe { core::slice::from_raw_parts::<u8>(ptr, 32) };
-        log_entry.buff[..].clone_from_slice(&slice);
+        log_entry.buf[..].clone_from_slice(&slice);
     }
 
 
