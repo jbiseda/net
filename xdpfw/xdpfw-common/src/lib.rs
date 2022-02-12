@@ -4,6 +4,9 @@
 #[repr(packed)]
 #[derive(Copy, Clone)]
 pub struct PacketLog {
+    pub ctx_data: u64,
+    pub ctx_data_end: u64,
+    pub ctx_diff: u64,
     pub ipv4_address: u32,
     pub action: u32,
     pub hash: u64,

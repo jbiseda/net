@@ -71,6 +71,9 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     }
 
     let mut log_entry = PacketLog {
+        ctx_data: ctx.data(),
+        ctx_data_end: ctx.data_end(),
+        ctx_diff: ctx.data_end() - ctx.data(),
         ipv4_address: 0,
         action: xdp_action::XDP_PASS,
         hash: 0,
@@ -142,9 +145,11 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     }
 
     // udp payload ptr
+    /*
     let ptr: *const u8 = unsafe { ptr_at(&ctx, ETH_HDR_LEN + ip_header_len + 8)? };
     let slice = unsafe { core::slice::from_raw_parts::<u8>(ptr, 32) };
     log_entry.buf[..].clone_from_slice(&slice);
+    */
 
 //    let mut key = [0; 32];
 //    key[..].copy_from_slice(&log_entry.buf[0..32]);
