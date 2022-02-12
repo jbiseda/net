@@ -150,7 +150,12 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     */
 
     log_entry.scratch = 55;
-    log_entry.scratch = (ctx.data() + ETH_HDR_LEN + ip_header_len + 8 + 32) as u64;
+    log_entry.scratch = ctx.data() as u64;
+    log_entry.scratch += ETH_HDR_LEN;
+    log_entry.scratch += ip_header_len;
+    log_entry.scratch += 8;
+    log_entry.scratch += 32;
+//    log_entry.scratch = (ctx.data() + ETH_HDR_LEN + ip_header_len + 8 + 32) as u64;
 
     /*
     if ctx.data() + ETH_HDR_LEN + ip_header_len + 8 + 32 <= ctx.data_end() {
