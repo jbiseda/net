@@ -155,7 +155,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
 
     let udp_byte: u8 = u8::from_be(unsafe { *ptr_at::<u8>(&ctx, offset)? });
 
-    log_entry.scratch = udp_byte as u64;
+//    log_entry.scratch = udp_byte as u64;
     /*
     if ctx.data() + offset + 1 > ctx.data_end() {
         log_entry.scratch = 77;
