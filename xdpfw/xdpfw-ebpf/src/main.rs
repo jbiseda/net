@@ -153,7 +153,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
 
     let offset: usize = ETH_HDR_LEN + ip_header_len + 8;
     let ptr: *const u8 = (ctx.data() + offset) as *const u8;
-    let log_entry.scratch = (*ptr) as u64;
+    log_entry.scratch = (*ptr) as u64;
 
 
     /*
