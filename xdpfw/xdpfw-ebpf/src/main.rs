@@ -154,6 +154,11 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
         None => (),
     }
 
+    log_entry.scratch = 4;
+    unsafe {
+        EVENTS.output(&ctx, &log_entry, 0);
+    }
+
     return Ok(xdp_action::XDP_PASS);
 
     //    DUPTABLE.insert(&key, &1, 0);

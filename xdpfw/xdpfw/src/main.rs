@@ -53,18 +53,20 @@ async fn main() -> Result<(), anyhow::Error> {
                     let ptr = buf.as_ptr() as *const PacketLog;
                     let data = unsafe { ptr.read_unaligned() };
                     let src_addr = net::Ipv4Addr::from(data.ipv4_address);
-                    //                    println!("LOG: SRC({}), ACTION({}) HASH({}) X({})", src_addr, data.action, data.hash, data.x);
                     println!(
-		        "LOG: SRC({}), PACKETLN({}) ACTION({}) HASH({}) IPL({}) UDPDP({}) UDPLN({}) UDPCALC({})",
-			src_addr,
-			data.packet_len,
-			data.action,
-			data.hash,
-			data.ip_ihl,
-			data.udp_dest_port,
-			data.udp_payload_len,
-			data.udp_payload_packet_calc,
-			);
+                        "LOG: SRC({}), PACKETLN({}) ACTION({}) HASH({}) IPL({}) UDPDP({}) UDPLN({}) UDPCALC({}) scratch({}) pkt_cnt({}) buf[0]({})",
+                        src_addr,
+                        data.packet_len,
+                        data.action,
+                        data.hash,
+                        data.ip_ihl,
+                        data.udp_dest_port,
+                        data.udp_payload_len,
+                        data.udp_payload_packet_calc,
+                        data.scratch,
+                        data.pkt_cnt,
+                        data.buf[0],
+                    );
                 }
             }
         });
