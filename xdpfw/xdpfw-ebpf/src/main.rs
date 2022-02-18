@@ -132,8 +132,6 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
         return Ok(xdp_action::XDP_PASS);
     }
 
-    return Ok(xdp_action::XDP_DROP);
-
     // len of udp header and data
     let udp_len: usize = u16::from_be(unsafe {
         *ptr_at(&ctx, ETH_HDR_LEN + ip_header_len + offset_of!(udphdr, len))?
@@ -145,6 +143,8 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     unsafe {
         EVENTS.output(&ctx, &log_entry, 0);
     }
+
+    return Ok(xdp_action::XDP_DROP);
 
     /*
     let slice = unsafe { core::slice::from_raw_parts::<u8>(ptr_at::<u8>(&ctx, ETH_HDR_LEN + ip_header_len + 8)?, 32) };
