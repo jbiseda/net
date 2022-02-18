@@ -98,8 +98,8 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
 
     let mut pkt_count = 0;
     match VARS.get(&VAR_PACKET_COUNT) {
-        Some(val) => {
-            *(val as &mut u64) += 1;
+        Some(val as *mut _) => {
+            *val += 1;
             pkt_count = *val;
         },
         None => {
