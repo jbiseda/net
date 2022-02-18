@@ -36,11 +36,36 @@ static mut BLOCKLIST: HashMap<u32, u32> = HashMap::<u32, u32>::with_max_entries(
 */
 
 #[map(name = "DUPTABLE")]
-static mut DUPTABLE: HashMap<[u8; 32], u8> = HashMap::<[u8; 32], u8>::with_max_entries(1024, 0);
+static mut DUPTABLE: HashMap<[u8; 32], u8> =
+    HashMap::<[u8; 32], u8>::with_max_entries(1024, 0);
 
 #[map(name = "EVENTS")]
 static mut EVENTS: PerfEventArray<PacketLog> =
     PerfEventArray::<PacketLog>::with_max_entries(1024, 0);
+
+
+impl Default for PacketLog {
+    fn default() -> PacketLog {
+        PacketLog {
+            ctx_data: 0,
+            ctx_data_end: 0,
+            ctx_diff: 0,
+            ipv4_address: 0,
+            action: 0,
+            hash: 0,
+            ip_ihl: 0,
+            tot_len: 0,
+            udp_dest_port: 0,
+            udp_payload_len: 0,
+            packet_len: 0,
+            udp_payload_packet_calc: 0,
+            scratch: 0,
+            buf: [0; 64],
+            pkt_cnt: 0,
+        }
+    }
+}
+
 
 #[xdp(name = "xdpfw")]
 pub fn xdpfw(ctx: XdpContext) -> u32 {
@@ -64,12 +89,6 @@ unsafe fn ptr_at<T>(ctx: &XdpContext, offset: usize) -> Result<*const T, ()> {
 }
 
 unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
-    let packet_len = ctx.data_end() - ctx.data();
-
-    //if packet_len < 100 {
-    //    return Ok(xdp_action::XDP_PASS);
-    //}
-
     let h_proto = u16::from_be(unsafe { *ptr_at(&ctx, offset_of!(ethhdr, h_proto))? });
     if h_proto != ETH_P_IP {
         // we're only lookig at IPv4
@@ -97,6 +116,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
         return Ok(xdp_action::XDP_PASS);
     }
 
+    /*
     let mut log_entry = PacketLog {
         ctx_data: ctx.data() as u64,
         ctx_data_end: ctx.data_end() as u64,
@@ -114,8 +134,11 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
         buf: [0; 64],
         pkt_cnt: 0,
     };
-
-    log_entry.scratch = packet_len as u64;
+    */
+    let mut log_entry = PacketLog::default();
+    log_entry.ctx_data = ctx.data() as u64;
+    log_entry.ctx_data_end = ctx.data_end() as u64;
+    log_entry.ctx_diff = (ctx.data_end() - ctx.data()) as u64;
 
 
     unsafe {
