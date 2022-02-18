@@ -35,8 +35,8 @@ async fn main() -> Result<(), anyhow::Error> {
     probe.attach(&iface, XdpFlags::SKB_MODE)
         .context("failed to attach the XDP program with default flags - try changing XdpFlags::default() to XdpFlags::SKB_MODE")?;
 
-    //let mut perf_array = PerfEventArray::try_from(bpf.map_mut("EVENTS")?)?;
-    let mut perf_array = AsyncPerfEventArray::try_from(bpf.map_mut("EVENTS")?)?;
+    let mut perf_array = PerfEventArray::try_from(bpf.map_mut("EVENTS")?)?;
+    //let mut perf_array = AsyncPerfEventArray::try_from(bpf.map_mut("EVENTS")?)?;
 
     for cpu_id in online_cpus()? {
         let mut buf = perf_array.open(cpu_id, None)?;
