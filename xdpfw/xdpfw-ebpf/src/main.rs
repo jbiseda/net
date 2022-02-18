@@ -64,6 +64,41 @@ unsafe fn ptr_at<T>(ctx: &XdpContext, offset: usize) -> Result<*const T, ()> {
 }
 
 unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
+    //let packet_len = ctx.data_end() - ctx.data();
+
+    //if packet_len < 100 {
+    //    return Ok(xdp_action::XDP_PASS);
+    //}
+
+    let h_proto = u16::from_be(unsafe { *ptr_at(&ctx, offset_of!(ethhdr, h_proto))? });
+    if h_proto != ETH_P_IP {
+        // we're only lookig at IPv4
+        return Ok(xdp_action::XDP_PASS);
+    }
+
+    // ip proto
+    let ip_proto =
+        u8::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + offset_of!(iphdr, protocol))? });
+    if ip_proto != UDP_PROTO {
+        // we only care about UDP
+        return Ok(xdp_action::XDP_PASS);
+    }
+
+    let first_byte: u8 = *ptr_at(&ctx, ETH_HDR_LEN)?;
+    let ip_ihl = first_byte & 0b00001111;
+    let ip_header_len: usize = (ip_ihl as usize) * 4;
+
+    let udp_dest_port = u16::from_be(unsafe {
+        *ptr_at(&ctx, ETH_HDR_LEN + ip_header_len + offset_of!(udphdr, dest))?
+    });
+    if udp_dest_port == 2222 {
+        return Ok(xdp_action::XDP_DROP);
+    }
+
+    return Ok(xdp_action::XDP_PASS);
+}
+
+unsafe fn try_xdpfw2(ctx: XdpContext) -> Result<u32, ()> {
     let packet_len = ctx.data_end() - ctx.data();
 
     if packet_len < 100 {
@@ -144,7 +179,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
         EVENTS.output(&ctx, &log_entry, 0);
     }
 
-    return Ok(xdp_action::XDP_ABORTED);
+    return Ok(xdp_action::XDP_DROP);
 
     /*
     let slice = unsafe { core::slice::from_raw_parts::<u8>(ptr_at::<u8>(&ctx, ETH_HDR_LEN + ip_header_len + 8)?, 32) };
