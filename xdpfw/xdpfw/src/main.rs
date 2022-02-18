@@ -1,6 +1,6 @@
 use anyhow::Context;
 use aya::{
-    maps::perf::AsyncPerfEventArray,
+//    maps::perf::AsyncPerfEventArray,
     maps::perf::PerfEventArray,
     programs::{Xdp, XdpFlags},
     util::online_cpus,
@@ -9,7 +9,7 @@ use aya::{
 use bytes::BytesMut;
 use std::{
     convert::{TryFrom, TryInto},
-    env, fs, net,
+    env, fs, net, time, thread,
 };
 use tokio::{signal, task};
 
@@ -47,8 +47,8 @@ async fn main() -> Result<(), anyhow::Error> {
                 .collect::<Vec<_>>();
 
             loop {
-                let events = buf.read_events(&mut buffers).await.unwrap();
-                //let events = buf.read_events(&mut buffers).unwrap();
+                //let events = buf.read_events(&mut buffers).await.unwrap();
+                let events = buf.read_events(&mut buffers).unwrap();
                 for i in 0..events.read {
                     let buf = &mut buffers[i];
                     let ptr = buf.as_ptr() as *const PacketLog;
@@ -73,6 +73,7 @@ async fn main() -> Result<(), anyhow::Error> {
                         data.buf[0],
                     );
                     println!("buf {:?}", data.buf);
+                    thread::sleep_ms(1_000);
                 }
             }
         });
