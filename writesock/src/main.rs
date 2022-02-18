@@ -48,7 +48,7 @@ fn main() -> std::io::Result<()> {
 
         let mut buf: Vec<u8> = Vec::with_capacity(buf_len);
 
-        for i in 0..buf.len() {
+        for i in 0..buf.capacity() {
             buf[i] = rand::thread_rng().gen_range(33..=126);
         }
 
