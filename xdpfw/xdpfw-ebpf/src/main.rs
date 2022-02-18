@@ -43,9 +43,9 @@ static mut DUPTABLE: HashMap<[u8; 32], u8> =
 static mut VARS: HashMap<u8, u64> =
     HashMap::<u8, u64>::with_max_entries(256, 0);
 
-static const VAR_PACKET_COUNT = 1;
-static const VAR_DROP_COUNT = 2;
-static const VAR_DUP_COUNT = 3;
+const VAR_PACKET_COUNT: u8 = 1;
+const VAR_DROP_COUNT: u8 = 2;
+const VAR_DUP_COUNT: u8 = 3;
 
 #[map(name = "EVENTS")]
 static mut EVENTS: PerfEventArray<PacketLog> =
@@ -103,7 +103,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
             pkt_count = *val;
         },
         None => {
-            DUPTABLE.insert(&VAR_PACKET_COUNT, 1);
+            DUPTABLE.insert(&VAR_PACKET_COUNT, 1, 0);
             pkt_count = 1;
         },
     }
