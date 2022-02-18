@@ -103,7 +103,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
             pkt_count = *val;
         },
         None => {
-            DUPTABLE.insert(&VAR_PACKET_COUNT, 1, 0);
+            VARS.insert(&VAR_PACKET_COUNT, &1, 0);
             pkt_count = 1;
         },
     }
