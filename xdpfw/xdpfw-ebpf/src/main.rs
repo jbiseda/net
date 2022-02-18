@@ -92,7 +92,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
         *ptr_at(&ctx, ETH_HDR_LEN + ip_header_len + offset_of!(udphdr, dest))?
     });
     if udp_dest_port == 2222 {
-        return Ok(xdp_action::XDP_PASS);
+        return Ok(xdp_action::XDP_DROP);
     }
 
     return Ok(xdp_action::XDP_PASS);
