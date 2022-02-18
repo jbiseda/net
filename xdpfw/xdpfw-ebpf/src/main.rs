@@ -39,6 +39,14 @@ static mut BLOCKLIST: HashMap<u32, u32> = HashMap::<u32, u32>::with_max_entries(
 static mut DUPTABLE: HashMap<[u8; 32], u8> =
     HashMap::<[u8; 32], u8>::with_max_entries(1024, 0);
 
+#[map(name = "VARS")]
+static mut VARS: HashMap<u8, u64> =
+    HashMap::<u8, u64>::with_max_entries(256, 0);
+
+static const VAR_PACKET_COUNT = 1;
+static const VAR_DROP_COUNT = 2;
+static const VAR_DUP_COUNT = 3;
+
 #[map(name = "EVENTS")]
 static mut EVENTS: PerfEventArray<PacketLog> =
     PerfEventArray::<PacketLog>::with_max_entries(1024, 0);
@@ -87,6 +95,20 @@ unsafe fn ptr_at<T>(ctx: &XdpContext, offset: usize) -> Result<*const T, ()> {
 }
 
 unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
+
+    let mut pkt_count = 0;
+    match VARS.get(&VAR_PACKET_COUNT) {
+        Some(val) => {
+            *val += 1;
+            pkt_count = *val;
+        },
+        None => {
+            DUPTABLE.insert(&VAR_PACKET_COUNT, 1);
+            pkt_count = 1;
+        },
+    }
+
+
     let h_proto = u16::from_be(unsafe { *ptr_at(&ctx, offset_of!(ethhdr, h_proto))? });
     if h_proto != ETH_P_IP {
         // we're only lookig at IPv4
@@ -114,29 +136,11 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
         return Ok(xdp_action::XDP_PASS);
     }
 
-    /*
-    let mut log_entry = PacketLog {
-        ctx_data: ctx.data() as u64,
-        ctx_data_end: ctx.data_end() as u64,
-        ctx_diff: (ctx.data_end() - ctx.data()) as u64,
-        ipv4_address: 0,
-        action: xdp_action::XDP_PASS,
-        hash: 0,
-        ip_ihl: 0,
-        tot_len: 0,
-        udp_dest_port: 0,
-        udp_payload_len: 0,
-        packet_len: 0,
-        udp_payload_packet_calc: 0,
-        scratch: 0,
-        buf: [0; 64],
-        pkt_cnt: 0,
-    };
-    */
     let mut log_entry = default_packet_log();
     log_entry.ctx_data = ctx.data() as u64;
     log_entry.ctx_data_end = ctx.data_end() as u64;
     log_entry.ctx_diff = (ctx.data_end() - ctx.data()) as u64;
+    log_entry.scratch = pkt_count;
 
 
     unsafe {
