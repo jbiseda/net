@@ -44,25 +44,23 @@ static mut EVENTS: PerfEventArray<PacketLog> =
     PerfEventArray::<PacketLog>::with_max_entries(1024, 0);
 
 
-impl PacketLog {
-    fn empty() -> PacketLog {
-        PacketLog {
-            ctx_data: 0,
-            ctx_data_end: 0,
-            ctx_diff: 0,
-            ipv4_address: 0,
-            action: 0,
-            hash: 0,
-            ip_ihl: 0,
-            tot_len: 0,
-            udp_dest_port: 0,
-            udp_payload_len: 0,
-            packet_len: 0,
-            udp_payload_packet_calc: 0,
-            scratch: 0,
-            buf: [0; 64],
-            pkt_cnt: 0,
-        }
+fn default_packet_log() -> PacketLog {
+    PacketLog {
+        ctx_data: 0,
+        ctx_data_end: 0,
+        ctx_diff: 0,
+        ipv4_address: 0,
+        action: 0,
+        hash: 0,
+        ip_ihl: 0,
+        tot_len: 0,
+        udp_dest_port: 0,
+        udp_payload_len: 0,
+        packet_len: 0,
+        udp_payload_packet_calc: 0,
+        scratch: 0,
+        buf: [0; 64],
+        pkt_cnt: 0,
     }
 }
 
@@ -135,7 +133,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
         pkt_cnt: 0,
     };
     */
-    let mut log_entry = PacketLog::empty();
+    let mut log_entry = default_packet_log();
     log_entry.ctx_data = ctx.data() as u64;
     log_entry.ctx_data_end = ctx.data_end() as u64;
     log_entry.ctx_diff = (ctx.data_end() - ctx.data()) as u64;
