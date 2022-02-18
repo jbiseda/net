@@ -46,7 +46,7 @@ checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 [[package]]
 name = "aya"
 version = "0.10.6"
-source = "git+https://github.com/aya-rs/aya?branch=main#2a1823934671ced3c910a2e6f287ba569bea9c60"
+source = "git+http://github.com/aya-rs/aya?branch=main#2a1823934671ced3c910a2e6f287ba569bea9c60"
 dependencies = [
  "bitflags",
  "bytes",
@@ -61,7 +61,7 @@ dependencies = [
 [[package]]
 name = "aya-gen"
 version = "0.1.0"
-source = "git+https://github.com/aya-rs/aya?branch=main#2a1823934671ced3c910a2e6f287ba569bea9c60"
+source = "git+http://github.com/aya-rs/aya?branch=main#2a1823934671ced3c910a2e6f287ba569bea9c60"
 dependencies = [
  "anyhow",
  "bindgen",

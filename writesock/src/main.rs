@@ -43,7 +43,7 @@ fn main() -> std::io::Result<()> {
 
     let buf = [5; 999];
 
-    for i in 0..1_000 {
+    for i in 0..1_000_000 {
         socket.send_to(&buf, &addr)?;
         std::thread::sleep(std::time::Duration::from_millis(1_000));
         println!("sent pktno={}", i);
