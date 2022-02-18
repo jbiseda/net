@@ -1,6 +1,6 @@
 use anyhow::Context;
 use aya::{
-    //    maps::perf::AsyncPerfEventArray,
+    maps::perf::AsyncPerfEventArray,
     maps::perf::PerfEventArray,
     programs::{Xdp, XdpFlags},
     util::online_cpus,
