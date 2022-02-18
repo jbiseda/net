@@ -64,7 +64,7 @@ unsafe fn ptr_at<T>(ctx: &XdpContext, offset: usize) -> Result<*const T, ()> {
 }
 
 unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
-    //let packet_len = ctx.data_end() - ctx.data();
+    let packet_len = ctx.data_end() - ctx.data();
 
     //if packet_len < 100 {
     //    return Ok(xdp_action::XDP_PASS);
@@ -91,11 +91,37 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     let udp_dest_port = u16::from_be(unsafe {
         *ptr_at(&ctx, ETH_HDR_LEN + ip_header_len + offset_of!(udphdr, dest))?
     });
-    if udp_dest_port == 2222 {
-        return Ok(xdp_action::XDP_DROP);
+
+    // only inspect packets for 2222
+    if udp_dest_port != 2222 {
+        return Ok(xdp_action::XDP_PASS);
     }
 
-    
+    let mut log_entry = PacketLog {
+        ctx_data: ctx.data() as u64,
+        ctx_data_end: ctx.data_end() as u64,
+        ctx_diff: (ctx.data_end() - ctx.data()) as u64,
+        ipv4_address: 0,
+        action: xdp_action::XDP_PASS,
+        hash: 0,
+        ip_ihl: 0,
+        tot_len: 0,
+        udp_dest_port: 0,
+        udp_payload_len: 0,
+        packet_len: 0,
+        udp_payload_packet_calc: 0,
+        scratch: 0,
+        buf: [0; 64],
+        pkt_cnt: 0,
+    };
+
+    log_entry.scratch = packet_len;
+
+
+    unsafe {
+        EVENTS.output(&ctx, &log_entry, 0);
+    }
+
 
     return Ok(xdp_action::XDP_PASS);
 }
