@@ -115,7 +115,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
         pkt_cnt: 0,
     };
 
-    log_entry.scratch = packet_len;
+    log_entry.scratch = packet_len as u64;
 
 
     unsafe {
