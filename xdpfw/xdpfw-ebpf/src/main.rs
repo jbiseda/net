@@ -144,7 +144,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
         EVENTS.output(&ctx, &log_entry, 0);
     }
 
-    return Ok(xdp_action::XDP_DROP);
+    return Ok(xdp_action::XDP_ABORT);
 
     /*
     let slice = unsafe { core::slice::from_raw_parts::<u8>(ptr_at::<u8>(&ctx, ETH_HDR_LEN + ip_header_len + 8)?, 32) };
