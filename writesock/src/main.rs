@@ -48,8 +48,8 @@ fn main() -> std::io::Result<()> {
 
         let mut buf: Vec<u8> = Vec::with_capacity(buf_len);
 
-        for i in 0..buf.capacity() {
-            buf[i] = rand::thread_rng().gen_range(33..=126);
+        for _ in 0..buf.capacity() {
+            buf.push(rand::thread_rng().gen_range(33..=126));
         }
 
         socket.send_to(&buf, &addr)?;
