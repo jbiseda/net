@@ -46,8 +46,8 @@ async fn main() -> Result<(), anyhow::Error> {
                 .collect::<Vec<_>>();
 
             loop {
-                //let events = buf.read_events(&mut buffers).await.unwrap();
-                let events = buf.read_events(&mut buffers).unwrap();
+                let events = buf.read_events(&mut buffers).await.unwrap();
+                //let events = buf.read_events(&mut buffers).unwrap();
                 for i in 0..events.read {
                     let buf = &mut buffers[i];
                     let ptr = buf.as_ptr() as *const PacketLog;
