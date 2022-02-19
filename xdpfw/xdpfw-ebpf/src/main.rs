@@ -6,7 +6,7 @@ use aya_bpf::{
     macros::{map, xdp},
     maps::{HashMap, PerfEventArray},
     programs::XdpContext,
-    helpers::{bpf_probe_read, bpf_probe_read_buf},
+    helpers::{bpf_probe_read, bpf_probe_read_buf, bpf_probe_read_kernel_buf},
 };
 
 mod bindings;
@@ -178,7 +178,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
         return Err(());
     }
 
-    let res = unsafe { bpf_probe_read_buf((ctx.data() + 42) as *const u8, &mut scratch) };
+    let res = unsafe { bpf_probe_read_kernel_buf((ctx.data() + 42) as *const u8, &mut scratch) };
     if res.is_err() {
         return Err(());
     }
