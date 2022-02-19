@@ -152,13 +152,17 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
 
     let payload_slice = unsafe { core::slice::from_raw_parts::<u8>(payload_ptr, payload_len) };
 
+    let mut hasher = FnvHasher::default();
+    hasher.write(&payload_slice);
+    let hash = hasher.finish();
+
     let mut log_entry = default_packet_log();
     log_entry.ctx_data = ctx.data() as u64;
     log_entry.ctx_data_end = ctx.data_end() as u64;
     log_entry.ctx_diff = (ctx.data_end() - ctx.data()) as u64;
     log_entry.pkt_cnt = pkt_count;
     log_entry.scratch = udp_pkt_count;
-    log_entry.hash = myport_count;
+    log_entry.hash = hash;
 
 
     unsafe {
