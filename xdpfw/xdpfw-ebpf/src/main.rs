@@ -184,7 +184,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     }
 
     let mut hasher = FnvHasher::default();
-    hasher.write(&scratch);
+    hasher.write(&scratch[..]);
     let hash = hasher.finish();
 
 
