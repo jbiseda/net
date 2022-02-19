@@ -100,7 +100,8 @@ unsafe fn inc_var(var: u8) -> u64 {
     match VARS.get(&var) {
         Some(ptr) => {
             let val = ptr as *const _ as *const _ as *mut u64;
-            *val += 1
+            *val += 1;
+            *val
         },
         None => {
             VARS.insert(&var, &1, 0);
