@@ -194,8 +194,8 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
         return Err(());
     }
 
-    for byte in scratch.iter() {
-        hash = hash ^ (*byte as u64);
+    for i in 0..32 {
+        hash = hash ^ (scratch[i] as u64);
         hash = hash.wrapping_mul(0x100000001b3);
     }
 
