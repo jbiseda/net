@@ -170,7 +170,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
 //    let last_payload_byte = u8::from_be(unsafe { *ptr_at::<u8>(&ctx, packet_len-1)? });
 //    let hash = last_payload_byte as u64;
 
-    let mut scratch = [0u8; 32];
+    let mut scratch = [0u8; 16];
 //    let ptr: *const u8 = unsafe { ptr_at::<u8>(&ctx, payload_off)? };
 //    let res = unsafe { bpf_probe_read_buf(ptr, &mut scratch) };
 
@@ -194,7 +194,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
         return Err(());
     }
 
-    for i in 0..32 {
+    for i in 0..16 {
         hash = hash ^ (scratch[i] as u64);
         hash = hash.wrapping_mul(0x100000001b3);
     }
