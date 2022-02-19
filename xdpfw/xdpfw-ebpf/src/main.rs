@@ -6,6 +6,7 @@ use aya_bpf::{
     macros::{map, xdp},
     maps::{HashMap, PerfEventArray},
     programs::XdpContext,
+    helpers::bpf_probe_read,
 };
 
 mod bindings;
@@ -169,12 +170,9 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
 //    let last_payload_byte = u8::from_be(unsafe { *ptr_at::<u8>(&ctx, packet_len-1)? });
 //    let hash = last_payload_byte as u64;
 
-    let x = ctx.data_end() - 1;
-    if x < ctx.data_end() {
-        let last_payload_ptr: *const u8 = unsafe { x as *const u8 };
-        let hash = *last_payload_ptr as u64;
-        log_entry.hash = hash;
-    }
+    let mut scratch = [0u8; 64];
+    let ptr: *const u8 = unsafe { ptr_at::<u8>(&ctx, payload_off)? };
+    unsafe { bpf_probe_read_buf(ptr, &mut buf)? };
 
 
     log_entry.ctx_data = ctx.data() as u64;
