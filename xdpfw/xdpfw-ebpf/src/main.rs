@@ -97,19 +97,16 @@ unsafe fn ptr_at<T>(ctx: &XdpContext, offset: usize) -> Result<*const T, ()> {
 }
 
 unsafe fn inc_var(var: u8) -> u64 {
-    let mut x: u64 = 0;
     match VARS.get(&var) {
         Some(ptr) => {
             let val = ptr as *const _ as *const _ as *mut u64;
-            *val += 1;
-            x = *val;
+            *val += 1
         },
         None => {
             VARS.insert(&var, &1, 0);
-            x = 1;            
+            1
         },
     }
-    x
 }
 
 unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
