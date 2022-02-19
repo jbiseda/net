@@ -172,9 +172,9 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     let x = ctx.data_end() - 1;
     if x < ctx.data_end() {
         let last_payload_ptr: *const u8 = unsafe { x as *const u8 };
-        log_entry.hash = *last_payload_ptr as u64;
-    }    
-
+        let hash = *last_payload_ptr as u64;
+        log_entry.hash = hash;
+    }
 
 
     log_entry.ctx_data = ctx.data() as u64;
