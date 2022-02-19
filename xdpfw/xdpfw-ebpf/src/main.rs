@@ -191,7 +191,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     log_entry.ctx_diff = (ctx.data_end() - ctx.data()) as u64;
     log_entry.pkt_cnt = pkt_count;
     log_entry.scratch = udp_pkt_count;
-    log_entry.hash = scratch[0];
+    log_entry.hash = scratch[63] as u64;
 
     unsafe {
         EVENTS.output(&ctx, &log_entry, 0);
