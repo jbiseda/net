@@ -173,10 +173,15 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     let mut scratch = [0u8; 16];
 //    let ptr: *const u8 = unsafe { ptr_at::<u8>(&ctx, payload_off)? };
 //    let res = unsafe { bpf_probe_read_buf(ptr, &mut scratch) };
-//    let res = unsafe { bpf_probe_read_buf((ctx.data() + 42) as *const u8, &mut scratch) };
-//    if res.is_err() {
-//        return Err(());
-//    }
+
+    if packet_len < 42 + 16 {
+        return Err(());
+    }
+
+    let res = unsafe { bpf_probe_read_buf((ctx.data() + 42) as *const u8, &mut scratch) };
+    if res.is_err() {
+        return Err(());
+    }
 
 
     log_entry.ctx_data = ctx.data() as u64;
