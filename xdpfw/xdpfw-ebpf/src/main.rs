@@ -183,9 +183,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
         return Err(());
     }
 
-    let mut hasher = FnvHasher::default();
-    hasher.write(&scratch[..]);
-    let hash = hasher.finish();
+
 
 
     log_entry.ctx_data = ctx.data() as u64;
@@ -193,7 +191,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     log_entry.ctx_diff = (ctx.data_end() - ctx.data()) as u64;
     log_entry.pkt_cnt = pkt_count;
     log_entry.scratch = udp_pkt_count;
-    log_entry.hash = hash;
+    log_entry.hash = scratch[0];
 
     unsafe {
         EVENTS.output(&ctx, &log_entry, 0);
