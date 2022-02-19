@@ -149,12 +149,10 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     let mut log_entry = default_packet_log();
 
 
-    /*
     let packet_len = (ctx.data_end() - ctx.data()) as usize;
     let payload_off = ETH_HDR_LEN + ip_header_len + UDP_HDR_LEN;
-    let payload_ptr: *const u8 = unsafe { ptr_at(&ctx, payload_off)? };
-    let payload_len = packet_len - payload_off;
-*/
+//    let payload_ptr: *const u8 = unsafe { ptr_at(&ctx, payload_off)? };
+//    let payload_len = packet_len - payload_off;
 
     /*
     let payload_slice = unsafe { core::slice::from_raw_parts::<u8>(payload_ptr, payload_len) };
@@ -173,8 +171,9 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
 //    let hash = last_payload_byte as u64;
 
     let mut scratch = [0u8; 16];
-    let ptr: *const u8 = unsafe { ptr_at::<u8>(&ctx, payload_off)? };
-    let res = unsafe { bpf_probe_read_buf(ptr, &mut scratch) };
+//    let ptr: *const u8 = unsafe { ptr_at::<u8>(&ctx, payload_off)? };
+//    let res = unsafe { bpf_probe_read_buf(ptr, &mut scratch) };
+    let res = unsafe { bpf_probe_read_buf(ctx.data() + payload_off, &mut scratch) };
     if res.is_err() {
         return Err(());
     }
