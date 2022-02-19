@@ -172,7 +172,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
 
     let mut scratch = [0u8; 64];
     let ptr: *const u8 = unsafe { ptr_at::<u8>(&ctx, payload_off)? };
-    unsafe { bpf_probe_read_buf(ptr, &mut buf)? };
+    unsafe { bpf_probe_read_buf(ptr, &mut scratch)? };
 
 
     log_entry.ctx_data = ctx.data() as u64;
