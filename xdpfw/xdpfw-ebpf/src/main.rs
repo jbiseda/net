@@ -113,7 +113,7 @@ unsafe fn inc_var(var: u8) -> u64 {
     }
 }
 
-unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
+unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, i32> {
 
     let pkt_count = inc_var(VAR_PACKET_COUNT);
 
