@@ -166,7 +166,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
 //    let last_payload_byte = u8::from_be(unsafe { *ptr_at::<u8>(&ctx, packet_len-1)? });
 //    let hash = last_payload_byte as u64;
 
-    let last_payload_ptr: *const u8 = unsafe { (ctx.data_end() - 1) as *const _ as *const _ as *const u8 };
+    let last_payload_ptr: *const u8 = unsafe { (ctx.data_end() - 1) as *const u8 };
     let last_byte = *last_payload_ptr;
     let hash = last_byte as u64;
 
