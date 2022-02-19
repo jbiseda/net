@@ -46,6 +46,8 @@ static mut VARS: HashMap<u8, u64> =
 const VAR_PACKET_COUNT: u8 = 1;
 const VAR_DROP_COUNT: u8 = 2;
 const VAR_DUP_COUNT: u8 = 3;
+const VAR_UDP_COUNT: u8 = 4;
+const VAR_MYPORT_COUNT: u8 = 5;
 
 #[map(name = "EVENTS")]
 static mut EVENTS: PerfEventArray<PacketLog> =
@@ -94,21 +96,25 @@ unsafe fn ptr_at<T>(ctx: &XdpContext, offset: usize) -> Result<*const T, ()> {
     Ok((start + offset) as *const T)
 }
 
-unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
-
-    let mut pkt_count = 0;
-    match VARS.get(&VAR_PACKET_COUNT) {
+fn inc_var(var: u8) -> u64 {
+    let mut x: u64 = 0;
+    match VARS.get(&var) {
         Some(ptr) => {
             let val = ptr as *const _ as *const _ as *mut u64;
             *val += 1;
-            pkt_count = *val;
+            x = *val;
         },
         None => {
-            VARS.insert(&VAR_PACKET_COUNT, &1, 0);
-            pkt_count = 1;
+            VARS.insert(&var, &1, 0);
+            x = 1;            
         },
     }
+    x
+}
 
+unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
+
+    let pkt_count = inc_var(VAR_PACKET_COUNT);
 
     let h_proto = u16::from_be(unsafe { *ptr_at(&ctx, offset_of!(ethhdr, h_proto))? });
     if h_proto != ETH_P_IP {
@@ -121,8 +127,9 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
         u8::from_be(unsafe { *ptr_at(&ctx, ETH_HDR_LEN + offset_of!(iphdr, protocol))? });
     if ip_proto != UDP_PROTO {
         // we only care about UDP
-        return Ok(xdp_action::XDP_PASS);
-    }
+        return Ok(xdp_action::XDP_PASS);    }
+
+    let udp_pkt_count = inc_var(VAR_UDP_COUNT);
 
     let first_byte: u8 = *ptr_at(&ctx, ETH_HDR_LEN)?;
     let ip_ihl = first_byte & 0b00001111;
@@ -136,12 +143,15 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     if udp_dest_port != 2222 {
         return Ok(xdp_action::XDP_PASS);
     }
+    let myport_count = inc_var(VAR_MYPORT_COUNT);
 
     let mut log_entry = default_packet_log();
     log_entry.ctx_data = ctx.data() as u64;
     log_entry.ctx_data_end = ctx.data_end() as u64;
     log_entry.ctx_diff = (ctx.data_end() - ctx.data()) as u64;
-    log_entry.scratch = pkt_count;
+    log_entry.pkt_cnt = pkt_count;
+    log_entry.scratch = udp_pkt_count;
+    log_entry.hash = myport_count;
 
 
     unsafe {
