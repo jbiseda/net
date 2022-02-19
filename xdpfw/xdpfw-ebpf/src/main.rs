@@ -22,6 +22,8 @@ const ETH_P_IP: u16 = 0x0800;
 // eth.h
 const ETH_HDR_LEN: usize = 14;
 
+const UDP_HDR_LEN: usize = 8;
+
 const TCP_PROTO: u8 = 6;
 const UDP_PROTO: u8 = 17;
 
@@ -142,6 +144,13 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
         return Ok(xdp_action::XDP_PASS);
     }
     let myport_count = inc_var(VAR_MYPORT_COUNT);
+
+    let packet_len = (ctx.data_end() - ctx.data()) as usize;
+    let payload_off = ETH_HDR_LEN + ip_header_len + UDP_HDR_LEN;
+    let payload_ptr: *const u8 = unsafe { ptr_at(&ctx, payload_off)? };
+    let payload_len = packet_len - payload_off;
+
+    let payload_slice = unsafe { core::slice::from_raw_parts::<u8>(payload_ptr, payload_len) };
 
     let mut log_entry = default_packet_log();
     log_entry.ctx_data = ctx.data() as u64;
