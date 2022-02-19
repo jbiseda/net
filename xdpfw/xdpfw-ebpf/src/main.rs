@@ -189,6 +189,16 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
         hash = hash.wrapping_mul(0x100000001b3);
     }
 
+    let res = unsafe { bpf_probe_read_kernel_buf((ctx.data() + payload_off + 32) as *const u8, &mut scratch) };
+    if res.is_err() {
+        return Err(());
+    }
+
+    for byte in scratch.iter() {
+        hash = hash ^ (*byte as u64);
+        hash = hash.wrapping_mul(0x100000001b3);
+    }
+
 
     log_entry.ctx_data = ctx.data() as u64;
     log_entry.ctx_data_end = ctx.data_end() as u64;
