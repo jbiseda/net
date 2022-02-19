@@ -145,6 +145,9 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     }
     let myport_count = inc_var(VAR_MYPORT_COUNT);
 
+    let mut log_entry = default_packet_log();
+
+
     let packet_len = (ctx.data_end() - ctx.data()) as usize;
     let payload_off = ETH_HDR_LEN + ip_header_len + UDP_HDR_LEN;
     let payload_ptr: *const u8 = unsafe { ptr_at(&ctx, payload_off)? };
@@ -166,18 +169,19 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
 //    let last_payload_byte = u8::from_be(unsafe { *ptr_at::<u8>(&ctx, packet_len-1)? });
 //    let hash = last_payload_byte as u64;
 
-    let last_payload_ptr: *const u8 = unsafe { (ctx.data_end() - 1) as *const u8 };
-    let last_byte = *last_payload_ptr;
-    let hash = last_byte as u64;
+    let x = ctx.data_end() - 1;
+    if x < ctx.data_end() {
+        let last_payload_ptr: *const u8 = unsafe { x as *const u8 };
+        let hash = *last_payload_ptr as u64;
+    }    
 
 
-    let mut log_entry = default_packet_log();
+
     log_entry.ctx_data = ctx.data() as u64;
     log_entry.ctx_data_end = ctx.data_end() as u64;
     log_entry.ctx_diff = (ctx.data_end() - ctx.data()) as u64;
     log_entry.pkt_cnt = pkt_count;
     log_entry.scratch = udp_pkt_count;
-    log_entry.hash = hash;
 
 
     unsafe {
