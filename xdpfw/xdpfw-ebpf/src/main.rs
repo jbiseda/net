@@ -113,7 +113,7 @@ unsafe fn inc_var(var: u8) -> u64 {
     }
 }
 
-unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, i32> {
+unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
 
     let pkt_count = inc_var(VAR_PACKET_COUNT);
 
@@ -172,7 +172,10 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, i32> {
 
     let mut scratch = [0u8; 64];
     let ptr: *const u8 = unsafe { ptr_at::<u8>(&ctx, payload_off)? };
-    unsafe { bpf_probe_read_buf(ptr, &mut scratch)? };
+    let res = unsafe { bpf_probe_read_buf(ptr, &mut scratch) };
+    if res.is_err() {
+        return Err(());
+    }
 
 
     log_entry.ctx_data = ctx.data() as u64;
