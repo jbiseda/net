@@ -96,7 +96,7 @@ unsafe fn ptr_at<T>(ctx: &XdpContext, offset: usize) -> Result<*const T, ()> {
     Ok((start + offset) as *const T)
 }
 
-fn inc_var(var: u8) -> u64 {
+unsafe fn inc_var(var: u8) -> u64 {
     let mut x: u64 = 0;
     match VARS.get(&var) {
         Some(ptr) => {
