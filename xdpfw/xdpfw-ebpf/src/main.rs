@@ -6,7 +6,7 @@ use aya_bpf::{
     macros::{map, xdp},
     maps::{HashMap, PerfEventArray},
     programs::XdpContext,
-    helpers::bpf_probe_read,
+    helpers::{bpf_probe_read, bpf_probe_read_buf},
 };
 
 mod bindings;
