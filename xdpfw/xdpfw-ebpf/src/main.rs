@@ -85,7 +85,7 @@ pub fn xdpfw(ctx: XdpContext) -> u32 {
     }
 }
 
-//#[inline(always)]
+#[inline(always)]
 unsafe fn ptr_at<T>(ctx: &XdpContext, offset: usize) -> Result<*const T, ()> {
     let start = ctx.data();
     let end = ctx.data_end();
@@ -163,8 +163,13 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     let first_payload_byte = u8::from_be(unsafe { *ptr_at(&ctx, payload_off)? });
     let hash = first_payload_byte as u64;
 
-    let last_payload_byte = u8::from_be(unsafe { *ptr_at::<u8>(&ctx, packet_len-1)? });
-    let hash = last_payload_byte as u64;
+//    let last_payload_byte = u8::from_be(unsafe { *ptr_at::<u8>(&ctx, packet_len-1)? });
+//    let hash = last_payload_byte as u64;
+
+    let last_payload_ptr: *const u8 = (ctx.data_end() - 1) as *const _ as *const _ as *const u8;
+    let last_byte = *last_payload_ptr;
+    let hash = last_byte as u64;
+
 
     let mut log_entry = default_packet_log();
     log_entry.ctx_data = ctx.data() as u64;
