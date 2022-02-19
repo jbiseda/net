@@ -178,7 +178,7 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
 //        return Err(());
 //    }
 
-    let res = unsafe { bpf_probe_read_kernel_buf((ctx.data() + 42) as *const u8, &mut scratch) };
+    let res = unsafe { bpf_probe_read_kernel_buf((ctx.data() + payload_off) as *const u8, &mut scratch) };
     if res.is_err() {
         return Err(());
     }
