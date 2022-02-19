@@ -163,6 +163,8 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     let first_payload_byte = u8::from_be(unsafe { *ptr_at(&ctx, payload_off)? });
     let hash = first_payload_byte as u64;
 
+    let last_payload_byte = u8::from_be(unsafe { *ptr_at(&ctx, ctx.data_end()-1) });
+
     let mut log_entry = default_packet_log();
     log_entry.ctx_data = ctx.data() as u64;
     log_entry.ctx_data_end = ctx.data_end() as u64;
