@@ -150,11 +150,14 @@ unsafe fn try_xdpfw(ctx: XdpContext) -> Result<u32, ()> {
     let payload_ptr: *const u8 = unsafe { ptr_at(&ctx, payload_off)? };
     let payload_len = packet_len - payload_off;
 
+    /*
     let payload_slice = unsafe { core::slice::from_raw_parts::<u8>(payload_ptr, payload_len) };
 
     let mut hasher = FnvHasher::default();
     hasher.write(&payload_slice);
     let hash = hasher.finish();
+    */
+    let hash = *payload_ptr as u64;
 
     let mut log_entry = default_packet_log();
     log_entry.ctx_data = ctx.data() as u64;
